@@ -26,7 +26,7 @@ const App = () => {
     <PeopleContext.Provider
       value={{
         people: state.people,
-        addPerson,
+        addPerson
       }}
     >
       <div className="container mt-4">

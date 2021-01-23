@@ -1,38 +1,36 @@
-import React, { useState, useContext, useMemo, useRef } from "react";
+import React, { useContext, useRef } from "react";
 import PeopleContext from "../context/peopleContext";
 
-const Form = () => {
-  const [person, setPerson] = useState({ firstName: "", lastName: "" });
+import { useForm } from "../hooks";
 
+const Form = () => {
   const context = useContext(PeopleContext);
 
   const firstnameInput = useRef(null);
 
-  const onChange = (event) => {
-    setPerson({ ...person, [event.target.name]: event.target.value });
-  };
-
-  const onSubmit = (event) => {
-    event.preventDefault();
-    if (person.firstName.trim() === "" || person.lastName.trim() === "") {
-      return;
+  const validatePersonForm = (values) => {
+    let errors = {};
+    if (values.firstName.trim() === "") {
+      errors.firstName = "First name must not be empty";
     }
 
-    const newPerson = {
-      firstName: person.firstName.trim(),
-      lastName: person.lastName.trim(),
-    };
+    if (values.lastName.trim() === "") {
+      errors.lastName = "Last name must not be empty";
+    }
 
-    context.addPerson(newPerson);
-    setPerson({ firstName: "", lastName: "" });
+    return errors;
+  };
+
+  const addPersonFromForm = () => {
+    context.addPerson(values);
     firstnameInput.current.focus();
   };
 
-  const printNumberOfPeople = () => {
-      console.log(`Number of people : ${context.people.length}`);
-  }
-
-  useMemo(() => printNumberOfPeople(), [context.people])
+  const { values, errors, onChange, onSubmit } = useForm(
+    addPersonFromForm,
+    { firstName: "", lastName: "" },
+    validatePersonForm
+  );
 
   return (
     <div className="col">
@@ -42,25 +40,33 @@ const Form = () => {
         <div className="form-group">
           <input
             type="text"
-            className="form-control"
+            className={`form-control ${errors.firstName && 'is-invalid'}`}
             name="firstName"
-            placeholder="First Name..."
-            value={person.firstName}
+            placeholder="First Name.."
+            value={values.firstName}
             ref={firstnameInput}
             onChange={onChange}
           />
+          {errors.firstName && (
+            <div className="invalid-feedback">{errors.firstName}</div>
+          )}
+        </div>
+        <div className="form-group">
           <input
             type="text"
-            className="form-control"
+            className={`form-control ${errors.lastName && 'is-invalid'}`}
             name="lastName"
             placeholder="Last Name..."
-            value={person.lastName}
+            value={values.lastName}
             onChange={onChange}
           />
-          <button className="btn btn-success" type="submit">
-            Add person
-          </button>
+          {errors.lastName && (
+            <div className="invalid-feedback">{errors.lastName}</div>
+          )}
         </div>
+        <button className="btn btn-success" type="submit">
+          Add person
+        </button>
       </form>
     </div>
   );
